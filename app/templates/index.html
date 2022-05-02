@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+		<h1>Welcome to Notes!</h1>
+		<hr>
+		<h2>Your notes:</h2>
+		{%for note in notes %}
+		<div><p><a href = "/{{ note.name }}"> {{ note.name }} </a></p></div>
+		{% endfor %}
+		<hr>
+		<div><p><a href = "/create_note"> Create note </a></p></div>
+{% endblock %}
