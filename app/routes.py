@@ -11,18 +11,38 @@ def index():
     user = {'username': 'miguel'}
     notes = Note.query.all()
     return render_template('index.html', title='Home', user=user, notes=notes)
+    
+@app.route('/get_list')
+def get_list():
+	notes = Note.query.all()
+	notes_str = ''
+	for note in notes:
+		notes_str += note.name + '<///>'
+	return notes_str
  
 @app.route('/<note_name>')
 def note(note_name):
 	note = Note.query.filter_by(name=note_name).first_or_404()
 	return render_template('note.html', title=note.name, name=note.name, text=note.text)
 
+@app.route('/<note_name>/get')
+def note_get(note_name):
+	note = Note.query.filter_by(name=note_name).first_or_404()
+	return note.name + 5 * '<///>' + note.text
+
 @app.route('/edit_note/<note_name>', methods=['GET', 'POST'])
 def edit(note_name):
 	note = Note.query.filter_by(name=note_name).first_or_404()
+	name1 = request.args.get('new_name', '')
+	text1 = request.args.get('new_text', '')
+	if name1 != '' and text1 != '':
+		note.name = name1
+		note.text = text1
+		db.session.commit()
+		return
 	form = CreateForm()
 	form2 = DeleteForm()
-	if form2.submit2.data and form2.validate():
+	if (form2.submit2.data and form2.validate()) or (request.args.get('deleted','') == 'yes'):
 		db.session.delete(note)
 		db.session.commit()
 		return redirect(url_for('index'))
@@ -37,7 +57,14 @@ def edit(note_name):
 	return render_template('editnote.html', title='Edit',form=form, name=note.name, text=note.text, form2=form2)
 
 @app.route('/create_note', methods=['GET', 'POST'])
-def creat():
+def create():
+	name1 = request.args.get('name', '')
+	text1 = request.args.get('text', '')
+	if name1 != '' and text1 != '':
+		note = Note(name=name1, text=text1)
+		db.session.add(note)
+		db.session.commit()
+		return
 	form = CreateForm()
 	if form.validate_on_submit():
 		note = Note(name=form.name.data, text=form.text.data)
